@@ -11,6 +11,7 @@ class OnboardingPage extends StatefulWidget {
 
 class _OnboardingPageState extends State<OnboardingPage> {
   final _usernameController = TextEditingController();
+  final _tokenController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -40,6 +41,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _saveUsername() async {
     final username = _usernameController.text.trim();
+    final token = _tokenController.text.trim();
+    
     if (username.isEmpty) return;
 
     setState(() {
@@ -48,6 +51,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('github_username', username);
+    if (token.isNotEmpty) {
+      await prefs.setString('github_token', token);
+    }
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
@@ -88,6 +94,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.person),
               ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _tokenController,
+              decoration: const InputDecoration(
+                labelText: "Personal Access Token (Optional)",
+                hintText: "ghp_...",
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.vpn_key),
+                helperText: "Required for private repositories",
+              ),
+              obscureText: true,
             ),
             const SizedBox(height: 20),
             ElevatedButton(

@@ -2,10 +2,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:productivity_app/blocs/auth/auth_bloc.dart';
+import 'package:productivity_app/blocs/calendar/calendar_bloc.dart';
 import 'package:productivity_app/blocs/github/github_bloc.dart';
 import 'package:productivity_app/firebase_options.dart';
 import 'package:productivity_app/pages/login_page.dart';
 import 'package:productivity_app/repositories/auth_repository.dart';
+import 'package:productivity_app/repositories/calendar_repository.dart';
 import 'package:productivity_app/repositories/github_repository.dart';
 import 'package:productivity_app/pages/onboarding_page.dart';
 
@@ -27,6 +29,7 @@ class MyApp extends StatelessWidget {
       providers: [
         RepositoryProvider(create: (context) => AuthRepository()),
         RepositoryProvider(create: (context) => GithubRepository()),
+        RepositoryProvider(create: (context) => CalendarRepository()),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -38,6 +41,11 @@ class MyApp extends StatelessWidget {
           BlocProvider(
             create: (context) => GithubBloc(
               githubRepository: RepositoryProvider.of<GithubRepository>(context),
+            ),
+          ),
+          BlocProvider(
+            create: (context) => CalendarBloc(
+              calendarRepository: RepositoryProvider.of<CalendarRepository>(context),
             ),
           ),
         ],

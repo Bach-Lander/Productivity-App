@@ -17,7 +17,10 @@ class GithubBloc extends Bloc<GithubEvent, GithubState> {
       GithubFetchRepos event, Emitter<GithubState> emit) async {
     emit(GithubLoading());
     try {
-      final repos = await githubRepository.getRepositories(event.username);
+      final repos = await githubRepository.getRepositories(
+        event.username,
+        token: event.token,
+      );
       emit(GithubLoaded(repos));
     } catch (e) {
       emit(GithubError(e.toString()));

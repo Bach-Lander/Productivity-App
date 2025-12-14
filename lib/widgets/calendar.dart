@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:productivity_app/models/meetings_model.dart';
-
-import '../constants/text_color.dart';
-import '../helpers/date_helper.dart';
+import 'package:intl/intl.dart';
+import 'package:productivity_app/blocs/calendar/calendar_bloc.dart';
+import 'package:productivity_app/blocs/calendar/calendar_state.dart';
 
 class Calendar extends StatefulWidget {
   const Calendar({Key? key}) : super(key: key);
@@ -13,121 +13,76 @@ class Calendar extends StatefulWidget {
 }
 
 class _CalendarState extends State<Calendar> {
-  int timeInde = 0;
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Stack(
-          children: [
-            ListView.builder(
-                itemCount: DateHelper.calendarTime.length,
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          DateHelper.calendarTime[index],
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 12.0,
-                            color: CustomTextStyles.grey,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Divider(
-                          color: Color.fromARGB(255, 145, 144, 144),
-                        )
-                      ],
-                    ),
-                  );
-                }),
-            ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: meetingss.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                        left: 40.0,
-                        top: DateHelper.calendarTime == meetingss[index].time
-                            ? 80
-                            : 58,
-                        bottom: DateHelper.calendarTime == meetingss[index].time
-                            ? 80
-                            : 58),
-                    child: Container(
-                      height: 85,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                meetingss[index].title,
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 13.0,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  overlapped(index),
-                                  Text(
-                                    meetingss[index].date,
-                                    style: GoogleFonts.spaceGrotesk(
-                                      fontSize: 12.0,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ]),
-                      ),
-                      decoration: BoxDecoration(
-                        color: meetingss[index].calendarEventColor,
-                      ),
-                      width: MediaQuery.of(context).size.width / 1.5,
-                    ),
-                  );
-                }),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget overlapped(int index) {
-    const overlap = 20.0;
-    final items = meetingss[index].participants;
-
-    List<Widget> stackLayers = List<Widget>.generate(items.length, (index) {
-      return Padding(
-          padding: EdgeInsets.only(
-            left: index.toDouble() * overlap,
-          ),
-          child: SizedBox(
-              width: 25,
-              height: 25,
-              child: Container(
-                height: 25,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                      fit: BoxFit.cover, image: AssetImage(items[index])),
+    return BlocBuilder<CalendarBloc, CalendarState>(
+      builder: (context, state) {
+        if (state is CalendarLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is CalendarLoaded) {
+          return Column(
+            children: [
+              if (state.events.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text("No events for today"),
                 ),
-              )));
-    });
-
-    return Stack(children: stackLayers.toList());
+              ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: state.events.length,
+                itemBuilder: (context, index) {
+                  final event = state.events[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Color(event.color),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event.title,
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${DateFormat('HH:mm').format(event.startTime)} - ${DateFormat('HH:mm').format(event.endTime)}",
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 14.0,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          if (event.description.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              event.description,
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 12.0,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ]
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        } else if (state is CalendarError) {
+          return Center(child: Text("Error: ${state.message}"));
+        }
+        return Container();
+      },
+    );
   }
 }

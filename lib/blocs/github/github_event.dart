@@ -9,9 +9,10 @@ abstract class GithubEvent extends Equatable {
 
 class GithubFetchRepos extends GithubEvent {
   final String username;
+  final String? token;
 
-  const GithubFetchRepos(this.username);
+  const GithubFetchRepos(this.username, {this.token});
 
   @override
-  List<Object> get props => [username];
+  List<Object> get props => [username, token ?? ''];
 }

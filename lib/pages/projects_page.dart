@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:productivity_app/blocs/github/github_bloc.dart';
 import 'package:productivity_app/models/github_repo_model.dart';
+import 'package:productivity_app/pages/project_details_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProjectsPage extends StatefulWidget {
@@ -21,8 +22,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
   Future<void> _loadRepos() async {
     final prefs = await SharedPreferences.getInstance();
     final username = prefs.getString('github_username');
+    final token = prefs.getString('github_token');
+    
     if (username != null && username.isNotEmpty) {
-      context.read<GithubBloc>().add(GithubFetchRepos(username));
+      context.read<GithubBloc>().add(GithubFetchRepos(username, token: token));
     }
   }
 
@@ -74,15 +77,23 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget _buildRepoCard(GithubRepoModel repo) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ProjectDetailsPage(repo: repo),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Row(
               children: [
                 const Icon(Icons.folder_open, color: Colors.blueGrey),
@@ -144,6 +155,6 @@ class _ProjectsPageState extends State<ProjectsPage> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:icons_flutter/icons_flutter.dart';
 import 'package:productivity_app/pages/calendar_page.dart';
 import 'package:productivity_app/pages/homepage.dart';
+import 'package:productivity_app/pages/profile_page.dart';
 import 'package:productivity_app/pages/projects_page.dart';
 
 import '../constants/text_color.dart';
@@ -22,8 +23,7 @@ class _MainPageState extends State<MainPage> {
     const HomePage(),
     const ProjectsPage(),
     const CalendarPage(),
-    Container(),
-    Container()
+    const ProfilePage()
   ];
   @override
   Widget build(BuildContext context) {
@@ -68,10 +68,6 @@ class _MainPageState extends State<MainPage> {
           BottomNavigationBarItem(
             icon: Icon(AntDesign.calendar),
             label: 'Calendar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(AntDesign.message1),
-            label: 'Messages',
           ),
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.person),
