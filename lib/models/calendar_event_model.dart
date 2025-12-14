@@ -9,6 +9,7 @@ class CalendarEventModel {
   final DateTime endTime;
   final int color;
   final String userId;
+  final String category;
 
   CalendarEventModel({
     required this.id,
@@ -18,6 +19,7 @@ class CalendarEventModel {
     required this.endTime,
     required this.color,
     required this.userId,
+    required this.category,
   });
 
   factory CalendarEventModel.fromSnapshot(DocumentSnapshot doc) {
@@ -30,6 +32,7 @@ class CalendarEventModel {
       endTime: (data['endTime'] as Timestamp).toDate(),
       color: data['color'] ?? 0xFFEA748E,
       userId: data['userId'] ?? '',
+      category: data['category'] ?? 'Other',
     );
   }
 
@@ -41,6 +44,7 @@ class CalendarEventModel {
       'endTime': Timestamp.fromDate(endTime),
       'color': color,
       'userId': userId,
+      'category': category,
     };
   }
   

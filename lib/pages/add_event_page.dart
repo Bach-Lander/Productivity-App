@@ -20,6 +20,9 @@ class _AddEventPageState extends State<AddEventPage> {
   DateTime _startTime = DateTime.now();
   DateTime _endTime = DateTime.now().add(const Duration(hours: 1));
   int _selectedColor = 0xFFEA748E;
+  String _selectedCategory = 'Meeting';
+
+  final List<String> _categories = ['Meeting', 'Reminder', 'Task', 'Other'];
 
   final List<int> _colors = [
     0xFFEA748E, // Pink
@@ -66,6 +69,25 @@ class _AddEventPageState extends State<AddEventPage> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: "Category",
+                  border: OutlineInputBorder(),
+                ),
+                items: _categories.map((String category) {
+                  return DropdownMenuItem<String>(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedCategory = newValue!;
+                  });
+                },
               ),
               const SizedBox(height: 16),
               ListTile(
@@ -172,6 +194,7 @@ class _AddEventPageState extends State<AddEventPage> {
           endTime: _endTime,
           color: _selectedColor,
           userId: authState.userId,
+          category: _selectedCategory,
         );
 
         context.read<CalendarBloc>().add(AddEvent(event));

@@ -4,11 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:productivity_app/blocs/auth/auth_bloc.dart';
 import 'package:productivity_app/blocs/calendar/calendar_bloc.dart';
 import 'package:productivity_app/blocs/github/github_bloc.dart';
+import 'package:productivity_app/blocs/task/task_bloc.dart';
 import 'package:productivity_app/firebase_options.dart';
 import 'package:productivity_app/pages/login_page.dart';
 import 'package:productivity_app/repositories/auth_repository.dart';
 import 'package:productivity_app/repositories/calendar_repository.dart';
 import 'package:productivity_app/repositories/github_repository.dart';
+import 'package:productivity_app/repositories/task_repository.dart';
 import 'package:productivity_app/pages/onboarding_page.dart';
 
 void main() async {
@@ -30,6 +32,7 @@ class MyApp extends StatelessWidget {
         RepositoryProvider(create: (context) => AuthRepository()),
         RepositoryProvider(create: (context) => GithubRepository()),
         RepositoryProvider(create: (context) => CalendarRepository()),
+        RepositoryProvider(create: (context) => TaskRepository()),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -46,6 +49,11 @@ class MyApp extends StatelessWidget {
           BlocProvider(
             create: (context) => CalendarBloc(
               calendarRepository: RepositoryProvider.of<CalendarRepository>(context),
+            ),
+          ),
+          BlocProvider(
+            create: (context) => TaskBloc(
+              taskRepository: RepositoryProvider.of<TaskRepository>(context),
             ),
           ),
         ],
