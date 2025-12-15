@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
@@ -34,5 +35,8 @@ class AuthRepository {
 
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('github_username');
+    await prefs.remove('github_token');
   }
 }

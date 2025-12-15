@@ -66,7 +66,12 @@ class _ProfilePageState extends State<ProfilePage> {
             // User Info Cards
             _buildInfoCard(Icons.email, "Email", _email ?? "Loading..."),
             const SizedBox(height: 16),
-            _buildInfoCard(Icons.code, "GitHub Username", _githubUsername ?? "Not connected"),
+            _buildInfoCard(
+              Icons.code, 
+              "GitHub Username", 
+              _githubUsername ?? "Not connected (Tap to connect)",
+              onTap: () => _showGithubSetupDialog(),
+            ),
             
             const SizedBox(height: 40),
             
@@ -97,53 +102,128 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildInfoCard(IconData icon, String title, String value) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: Colors.grey.shade200),
+  Widget _buildInfoCard(IconData icon, String title, String value, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: Colors.blue),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (onTap != null)
+              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+          ],
+        ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+    );
+  }
+
+  Future<void> _showGithubSetupDialog() async {
+    final usernameController = TextEditingController(text: _githubUsername);
+    final tokenController = TextEditingController();
+    
+    // Pre-fill token if available
+    final prefs = await SharedPreferences.getInstance();
+    tokenController.text = prefs.getString('github_token') ?? '';
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Connect GitHub"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: usernameController,
+              decoration: const InputDecoration(
+                labelText: "GitHub Username",
+                hintText: "Enter your username",
+                prefixIcon: Icon(Icons.person),
+              ),
             ),
-            child: Icon(icon, color: Colors.blue),
+            const SizedBox(height: 16),
+            TextField(
+              controller: tokenController,
+              decoration: const InputDecoration(
+                labelText: "Personal Access Token",
+                hintText: "ghp_...",
+                prefixIcon: Icon(Icons.vpn_key),
+                helperText: "Optional (for private repos)",
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          ElevatedButton(
+            onPressed: () async {
+              final username = usernameController.text.trim();
+              final token = tokenController.text.trim();
+              
+              if (username.isNotEmpty) {
+                await prefs.setString('github_username', username);
+                if (token.isNotEmpty) {
+                  await prefs.setString('github_token', token);
+                } else {
+                  await prefs.remove('github_token');
+                }
+                
+                setState(() {
+                  _githubUsername = username;
+                });
+                
+                if (mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text("Save"),
           ),
         ],
       ),

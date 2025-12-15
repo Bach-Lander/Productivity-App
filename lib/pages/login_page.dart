@@ -14,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLogin = true;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -46,69 +47,90 @@ class _LoginPageState extends State<LoginPage> {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _isLogin ? 'Welcome Back' : 'Create Account',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'Email'),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Password'),
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      final email = _emailController.text.trim();
-                      final password = _passwordController.text.trim();
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isLogin ? 'Welcome Back' : 'Create Account',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _emailController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Veuillez entrer un email';
+                        }
 
-                      if (email.isEmpty || password.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Please fill in all fields"),
-                            backgroundColor: Colors.orange,
-                          ),
+                        // Définition de la regex
+                        // Le 'r' signifie "raw string" (chaîne brute),
+                        // cela évite de devoir échapper les caractères spéciaux.
+                        final RegExp emailRegex = RegExp(
+                          r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
                         );
-                        return;
-                      }
 
-                      if (password.length < 6) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Password must be at least 6 characters"),
-                            backgroundColor: Colors.orange,
-                          ),
-                        );
-                        return;
-                      }
+                        if (!emailRegex.hasMatch(value)) {
+                          return 'Veuillez entrer une adresse email valide';
+                        }
 
-                      if (_isLogin) {
-                        context.read<AuthBloc>().add(AuthLoginRequested(email, password));
-                      } else {
-                        context.read<AuthBloc>().add(AuthRegisterRequested(email, password));
-                      }
-                    },
-                    child: Text(_isLogin ? 'Login' : 'Register'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _isLogin = !_isLogin;
-                      });
-                    },
-                    child: Text(_isLogin
-                        ? 'Don\'t have an account? Register'
-                        : 'Already have an account? Login'),
-                  ),
-                ],
+                        return null; // Tout est bon
+                      },
+                      decoration: const InputDecoration(labelText: 'Email'),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(labelText: 'Password'),
+                      validator: (value) => (value == null || value.isEmpty || value.length < 6)
+                          ? 'Veuillez entrer un mot de passe.\nIl doit contenir au moins 6 caractères.'
+                          : null,
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        final email = _emailController.text.trim();
+                        final password = _passwordController.text.trim();
+                        if (!_formKey.currentState!.validate()) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Utilisateur non enregistré ou mot de passe invalide."),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                        if (_isLogin) {
+                          context.read<AuthBloc>().add(
+                            AuthLoginRequested(email, password),
+                          );
+                        } else {
+                          context.read<AuthBloc>().add(
+                            AuthRegisterRequested(email, password),
+                          );
+                        }
+                      },
+                      child: Text(_isLogin ? 'Login' : 'Register'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _isLogin = !_isLogin;
+                        });
+                      },
+                      child: Text(
+                        _isLogin
+                            ? 'Don\'t have an account? Register'
+                            : 'Already have an account? Login',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
